@@ -91,9 +91,20 @@ export const createUser = async (req: Request, res: Response) => {
       ]
     );
 
+    const newUser = result.rows[0];
+
+    // Automatically create leave balance rows for all deductible leave types
+    await pool.query(
+      `INSERT INTO leave_balances (user_id, leave_type_id, total_allowance, deducted, remaining)
+       SELECT $1, id, 20, 0, 20
+       FROM leave_types
+       WHERE is_deductible = true`,
+      [newUser.id]
+    );
+
     res.status(201).json({
       message: "User created successfully",
-      user: result.rows[0],
+      user: newUser,
     });
   } catch (error) {
     console.error("CREATE USER ERROR:", error);
