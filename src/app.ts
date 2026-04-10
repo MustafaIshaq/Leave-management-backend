@@ -8,6 +8,9 @@ import departmentRoutes from "./routes/departmentRoutes";
 import leaveTypeRoutes from "./routes/leaveTypeRoutes";
 import settingsRoutes from "./routes/settingsRoutes";
 import leaveRequestRoutes from "./routes/leaveRequestRoutes";
+import holidayRoutes from "./routes/holidayRoutes";
+import calendarRoutes from "./routes/calendarRoutes";
+import wallchartRoutes from "./routes/wallchartRoutes";
 
 const app = express();
 
@@ -17,6 +20,9 @@ app.use("/departments", departmentRoutes);
 app.use("/leave-types", leaveTypeRoutes);
 app.use("/settings", settingsRoutes);
 app.use("/leave-requests", leaveRequestRoutes);
+app.use("/holidays", holidayRoutes);
+app.use("/calendar", calendarRoutes);
+app.use("/wallchart", wallchartRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API running");
