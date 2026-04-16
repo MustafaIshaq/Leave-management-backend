@@ -122,6 +122,69 @@ export const getMyLeaveRequests = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// GET all request by department (Director)
+export const getDepartmentLeaveRequests = async (req: AuthRequest, res: Response) => {
+  try {
+    const directorId = req.user?.id;
+
+    if (!directorId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    // Get director's department
+    const directorResult = await pool.query(
+      "SELECT department_id, role FROM users WHERE id = $1",
+      [directorId]
+    );
+
+    if (directorResult.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const director = directorResult.rows[0];
+
+    if (!director.department_id) {
+      return res.status(400).json({
+        message: "Director is not assigned to any department",
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT
+         lr.id,
+         lr.user_id,
+         u.full_name,
+         u.department_id,
+         d.name AS department_name,
+         lt.name AS leave_type,
+         lr.start_date,
+         lr.end_date,
+         lr.unit,
+         lr.total_days,
+         lr.total_hours,
+         lr.reason,
+         lr.status,
+         lr.approved_by,
+         lr.approved_at,
+         lr.created_at
+       FROM leave_requests lr
+       JOIN users u ON lr.user_id = u.id
+       LEFT JOIN departments d ON u.department_id = d.id
+       JOIN leave_types lt ON lr.leave_type_id = lt.id
+       WHERE u.department_id = $1
+       ORDER BY lr.created_at DESC`,
+      [director.department_id]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("GET DEPARTMENT LEAVE REQUESTS ERROR:", error);
+    res.status(500).json({ message: "Failed to fetch department leave requests" });
+  }
+};
+
+
+
 // APPROVE
 export const approveLeaveRequest = async (req: AuthRequest, res: Response) => {
   try {
