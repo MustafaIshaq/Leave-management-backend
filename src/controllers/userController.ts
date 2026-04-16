@@ -2,6 +2,7 @@
 import { Request, Response } from "express";
 import pool from "../config/db";
 import bcrypt from "bcrypt";
+import { AuthRequest } from "../middlewares/authMiddleware";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -37,6 +38,8 @@ export const getUserById = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to fetch user" });
   }
 };
+
+
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -109,6 +112,59 @@ export const createUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("CREATE USER ERROR:", error);
     res.status(500).json({ message: "Failed to create user" });
+  }
+};
+
+export const getUsersByDepartment = async (req: AuthRequest, res: Response) => {
+  try {
+    const directorId = req.user?.id;
+
+    if (!directorId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    // Get logged-in user's department
+    const directorResult = await pool.query(
+      "SELECT department_id, role FROM users WHERE id = $1",
+      [directorId]
+    );
+
+    if (directorResult.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const director = directorResult.rows[0];
+
+    if (!director.department_id) {
+      return res.status(400).json({
+        message: "Director is not assigned to any department",
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT 
+         id,
+         full_name,
+         email,
+         role,
+         department_id,
+         designation,
+         phone,
+         date_of_birth,
+         leave_start_month,
+         work_start_time,
+         work_end_time,
+         created_at
+       FROM users
+       WHERE department_id = $1
+       ORDER BY id ASC`,
+      [director.department_id]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("GET USERS BY DEPARTMENT ERROR:", error);
+    res.status(500).json({ message: "Failed to fetch department users" });
   }
 };
 
