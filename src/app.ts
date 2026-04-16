@@ -11,6 +11,7 @@ import leaveRequestRoutes from "./routes/leaveRequestRoutes";
 import holidayRoutes from "./routes/holidayRoutes";
 import calendarRoutes from "./routes/calendarRoutes";
 import wallchartRoutes from "./routes/wallchartRoutes";
+import leaveBalanceRoutes from "./routes/leaveBalanceRoutes";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/leave-requests", leaveRequestRoutes);
 app.use("/holidays", holidayRoutes);
 app.use("/calendar", calendarRoutes);
 app.use("/wallchart", wallchartRoutes);
+app.use("/leave-balances", leaveBalanceRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API running");
